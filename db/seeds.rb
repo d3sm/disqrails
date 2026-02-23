@@ -1,0 +1,1 @@
+Post.delete_all
