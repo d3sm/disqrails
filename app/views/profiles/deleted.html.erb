@@ -1,0 +1,11 @@
+<section class="mt-6 mb-4">
+  <div class="flex items-center gap-3">
+    <%= render AvatarComponent.new(user: nil, size: 48) %>
+    <div>
+      <h1 class="m-0 text-2xl text-muted">[deleted]</h1>
+      <p class="mt-0.5 mb-0 text-muted text-base">This account has been removed.</p>
+    </div>
+  </div>
+</section>
+
+<%= link_to "Back to posts", posts_path, class: "back-link" %>

@@ -1,19 +1,27 @@
 class ApplicationController < ActionController::Base
   allow_browser versions: :modern
   stale_when_importmap_changes
-
-  helper_method :giphy_api_key
+  before_action :require_login
+  helper_method :current_user, :github_oauth_ready?
 
   private
 
-  def giphy_api_key
-    return ENV["GIPHY_API_KEY"] if ENV["GIPHY_API_KEY"].present?
+  def current_user
+    return @current_user if defined?(@current_user)
 
-    key_path = Rails.root.join("config/giphy.key")
-    return unless key_path.exist?
-
-    key_path.read.strip.presence
-  rescue StandardError
-    nil
+    @current_user = User.find_by(id: session[:user_id])
   end
+
+  def require_login
+    return if current_user.present?
+    return if request.path.start_with?("/auth/")
+    return if request.path == login_path
+
+    redirect_to login_path, alert: "Sign in with GitHub to continue."
+  end
+
+  def github_oauth_ready?
+    GithubOauthConfig.ready?
+  end
+
 end

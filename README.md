@@ -1,36 +1,30 @@
-# **H**acker news **o**n **R**ails 💅🏻
+# DisqRails
 
-## Prerequisites
-
-- Ruby `3.3.4`
-- PostgreSQL running locally on `localhost:5432`
+A personal feed reader and link aggregator. Thanks to [Lobsters](https://lobste.rs), [Hacker News](https://news.ycombinator.com), [engineeringblogs.xyz](https://engineeringblogs.xyz), [Bear Blog](https://bearblog.dev/discover/), [Techmeme](https://www.techmeme.com), [LWN](https://lwn.net), and [Lemmy](https://lemmy.ml) for inspiration.
 
 ## Setup
 
+Ruby 3.3+, PostgreSQL.
+
 ```bash
 bundle install
-bin/setup --skip-server
-```
-
-Equivalent manual DB setup:
-
-```bash
-bin/rails db:create db:migrate db:seed
-```
-
-## Run
-
-```bash
+bin/rails db:create db:schema:load db:seed
 bin/dev
 ```
 
-Open `http://localhost:3000`.
+## Auth
 
-## Import Hacker News data
+GitHub OAuth. Create an app, set callback to `http://localhost:3000/auth/github/callback`, then:
 
-Top stories are fetched automatically when the homepage loads.
-The importer refreshes periodically and pulls from:
+```bash
+export GITHUB_CLIENT_ID=...
+export GITHUB_CLIENT_SECRET=...
+```
 
-`https://hacker-news.firebaseio.com/v0/topstories.json`
+## TODO
 
-The app stores imported story rank, score, author, and comment count metadata and renders posts in HN rank order.
+- Comment tree cleanup (simplify recursive rendering, extract into component)
+- Theme editor overhaul (replace dev-only color picker with user-facing theme switcher)
+- Post show view simplification (reduce partial nesting)
+- Pagination with Turbo Streams (replace frame-based load-more with stream append)
+- Frontpage & topbar cleanup

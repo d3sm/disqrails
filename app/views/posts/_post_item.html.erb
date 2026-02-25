@@ -1,0 +1,24 @@
+<li class="py-3.5 pr-2 [&+li]:border-t [&+li]:border-t-surface-2">
+  <%= link_to post.title, post_path(post), class: "text-primary no-underline text-lg hover:underline" %>
+  <% if post.external_source? %>
+    <span class="inline-block ml-1.5 rounded-pill px-2 py-px text-xs text-badge-ext-text bg-badge-ext-bg align-[0.2rem]"><%= post.external_source_label %><%= " #{post.hn_score}pts" if post.hn_score.to_i > 0 %></span>
+  <% elsif post.source == "feed" && post.feed.present? %>
+    <span class="inline-block ml-1.5 rounded-pill px-2 py-px text-xs text-muted bg-surface-2 align-[0.2rem]"><%= post.feed.name.truncate(24) %></span>
+    <% post.feed.tags.each do |tag| %>
+      <%= link_to tag.name, posts_path(tag: tag.slug), class: "inline-block ml-0.5 rounded-pill px-1.5 py-px text-xs bg-surface-2 text-muted no-underline hover:text-accent align-[0.2rem]" %>
+    <% end %>
+  <% end %>
+  <% if post.source_domain.present? %>
+    <span class="ml-1.5 text-muted text-base">(<%= post.source_domain %>)</span>
+  <% end %>
+  <div class="mt-0.5 text-muted text-base meta-dots">
+    <span>by <%= render AuthorComponent.new(user: post.user, author_text: post.author_name) %></span>
+    <% if post.comment_count > 0 %>
+      <span><%= pluralize(post.comment_count, "comment") %></span>
+    <% end %>
+    <% if post.external_rank.present? %>
+      <span>#<%= post.external_rank %> on <%= post.external_source_label %></span>
+    <% end %>
+    <span><%= time_ago_in_words(post.effective_time) %> ago</span>
+  </div>
+</li>

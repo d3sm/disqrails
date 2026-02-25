@@ -1,0 +1,13 @@
+<%= turbo_frame_tag "load_more_posts", style: "display: contents" do %>
+  <% @posts.each do |post| %>
+    <%= render "posts/post_item", post: post %>
+  <% end if @page && @page > 1 %>
+  <% if @next_page %>
+    <li class="list-none flex justify-center pt-2 pb-1">
+      <%= link_to "Load more",
+        posts_path(source: @source_filter, tag: @tag_filter, sort: @sort, page: @next_page),
+        data: { turbo_frame: "load_more_posts" },
+        class: "bg-surface text-muted rounded-pill px-3 py-1.5 text-sm no-underline hover:text-primary" %>
+    </li>
+  <% end %>
+<% end %>

@@ -1,0 +1,25 @@
+<li id="feed_<%= feed.id %>" class="flex items-center gap-2 py-2 [&+li]:border-t [&+li]:border-t-surface-2">
+  <% if subscribed %>
+    <%= button_to subscription_path(feed.id), method: :delete, class: "inline-flex items-center justify-center size-5 rounded border border-accent bg-accent text-white cursor-pointer text-xs", data: { turbo_method: :delete } do %>
+      &#10003;
+    <% end %>
+  <% else %>
+    <%= button_to subscriptions_path(feed_id: feed.id), method: :post, class: "inline-flex items-center justify-center size-5 rounded border border-surface-2 bg-surface cursor-pointer text-xs hover:border-accent", data: { turbo_method: :post } do %>
+      &nbsp;
+    <% end %>
+  <% end %>
+
+  <div class="flex-1 min-w-0">
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <span class="text-primary text-sm font-medium"><%= feed.name %></span>
+      <% if feed.site_url.present? %>
+        <% host = (URI.parse(feed.site_url).host rescue nil) || feed.site_url %>
+        <%= link_to "(#{host})", feed.site_url, class: "text-muted text-xs no-underline hover:underline", target: "_blank" %>
+      <% end %>
+      <% feed.tags.each do |tag| %>
+        <%= link_to tag.name, feeds_path(tag: tag.slug), class: "inline-block rounded-pill px-1.5 py-px text-xs bg-surface-2 text-muted no-underline hover:text-accent" %>
+      <% end %>
+    </div>
+    <div class="text-muted text-xs mt-0.5"><%= feed.posts.count %> posts</div>
+  </div>
+</li>

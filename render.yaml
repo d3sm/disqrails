@@ -1,0 +1,31 @@
+databases:
+  - name: disqrails-db
+    plan: free
+    databaseName: disqrails_production
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: disqrails
+    runtime: ruby
+    plan: free
+    buildCommand: ./bin/render-build.sh
+    startCommand: bundle exec puma -C config/puma.rb
+    healthCheckPath: /up
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: disqrails-db
+          property: connectionString
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: SOLID_QUEUE_IN_PUMA
+        value: "1"
+      - key: RAILS_ENV
+        value: production

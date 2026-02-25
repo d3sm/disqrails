@@ -1,0 +1,88 @@
+<section class="mt-6 mb-4">
+  <div class="flex items-center gap-3">
+    <%= render AvatarComponent.new(user: @profile_user, size: 48) %>
+    <div>
+      <h1 class="m-0 text-2xl">@<%= @profile_user.nickname %></h1>
+      <p class="mt-0.5 mb-0 text-muted text-base">
+        Member since <%= @profile_user.created_at.strftime("%b %Y") %>
+        &middot;
+        <%= @profile_user.karma %> karma
+      </p>
+    </div>
+  </div>
+</section>
+
+<% if @recent_posts.any? %>
+  <section class="card p-4 mt-4">
+    <h2 class="mt-0 text-lg">Recent posts</h2>
+    <ul class="list-none p-0 m-0">
+      <% @recent_posts.each do |post| %>
+        <li class="py-2 [&+li]:border-t [&+li]:border-t-surface-2">
+          <%= link_to post.title, post_path(post), class: "text-primary no-underline hover:underline" %>
+          <span class="text-muted text-sm ml-1"><%= time_ago_in_words(post.effective_time) %> ago</span>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>
+
+<% if @recent_comments.any? %>
+  <section class="card p-4 mt-4">
+    <h2 class="mt-0 text-lg">Recent comments</h2>
+    <ul class="list-none p-0 m-0">
+      <% @recent_comments.each do |comment| %>
+        <li class="py-2 [&+li]:border-t [&+li]:border-t-surface-2">
+          <span class="text-muted text-sm">"<%= strip_tags(comment.display_body_html).squish.truncate(120) %>"</span>
+          <% if comment.post %>
+            <span class="text-muted text-sm">on <%= link_to comment.post.title.truncate(60), post_path(comment.post, anchor: "comment-#{comment.id}"), class: "text-accent no-underline hover:underline" %></span>
+          <% end %>
+          <span class="text-muted text-sm ml-1"><%= time_ago_in_words(comment.posted_at || comment.created_at) %> ago</span>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>
+
+<% if current_user&.id == @profile_user.id %>
+  <% if @liked_posts.any? || @disliked_posts.any? %>
+    <section class="card p-4 mt-4">
+      <h2 class="mt-0 text-lg">My preferences</h2>
+      <% if @liked_posts.any? %>
+        <h3 class="mt-2 mb-1 text-base text-muted">Upvoted</h3>
+        <ul class="list-none p-0 m-0">
+          <% @liked_posts.each do |post| %>
+            <li class="py-1.5 [&+li]:border-t [&+li]:border-t-surface-2">
+              <span class="text-accent">&#9650;</span>
+              <%= link_to post.title.truncate(80), post_path(post), class: "text-primary no-underline hover:underline text-sm" %>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+      <% if @disliked_posts.any? %>
+        <h3 class="mt-2 mb-1 text-base text-muted">Downvoted</h3>
+        <ul class="list-none p-0 m-0">
+          <% @disliked_posts.each do |post| %>
+            <li class="py-1.5 [&+li]:border-t [&+li]:border-t-surface-2">
+              <span class="text-red-500">&#9660;</span>
+              <%= link_to post.title.truncate(80), post_path(post), class: "text-primary no-underline hover:underline text-sm" %>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+    </section>
+  <% end %>
+
+  <section class="card p-4 mt-4 border border-red-200">
+    <details>
+      <summary class="cursor-pointer text-red-500 text-sm font-medium">Delete account</summary>
+      <p class="mt-2 text-muted text-sm">This will anonymize your profile and revoke login access. Your posts and comments will remain as [deleted]. This cannot be undone.</p>
+      <%= form_with url: user_profile_path(current_user), method: :delete, local: true, class: "mt-2 grid gap-2" do %>
+        <label class="text-sm text-muted">Type <strong><%= current_user.nickname %></strong> to confirm:</label>
+        <%= text_field_tag :confirm_nickname, nil, required: true, class: "w-full max-w-xs px-3 py-2 rounded-btn border border-line bg-white text-primary font-inherit text-sm", autocomplete: "off" %>
+        <%= submit_tag "Delete my account", class: "w-fit bg-red-500 text-white rounded-lg px-3 py-1.5 text-sm cursor-pointer hover:bg-red-600" %>
+      <% end %>
+    </details>
+  </section>
+<% end %>
+
+<%= link_to "Back to posts", posts_path, class: "back-link" %>

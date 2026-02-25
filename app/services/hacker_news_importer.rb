@@ -1,9 +1,8 @@
 require "cgi"
 
 class HackerNewsImporter
-  def initialize(client: HackerNewsClient.new, metadata_fetcher: ArticleMetadataFetcher.new)
+  def initialize(client: HackerNewsClient.new)
     @client = client
-    @metadata_fetcher = metadata_fetcher
   end
 
   def import_top_stories(limit: 20)
@@ -28,8 +27,9 @@ class HackerNewsImporter
       post.title = CGI.unescapeHTML(story["title"].to_s.strip)
       post.url = story["url"]
       post.text = story["text"]
-      apply_article_metadata!(post)
-      post.created_at = Time.at(story["time"]) if post.new_record? && story["time"].present?
+      post.author = story["by"]
+      post.published_at ||= Time.zone.at(story["time"]) if story["time"].present?
+      post.created_at = Time.zone.at(story["time"]) if post.new_record? && story["time"].present?
 
       if post.title.blank? || (post.url.blank? && post.text.blank?)
         skipped += 1
@@ -47,22 +47,11 @@ class HackerNewsImporter
 
   private
 
-  attr_reader :client, :metadata_fetcher
+  attr_reader :client
 
   def importable_story?(story)
     return false unless story.is_a?(Hash) && story["id"].present?
 
     story["type"] == "story"
-  end
-
-  def apply_article_metadata!(post)
-    return if post.url.blank?
-    return if post.source_image_url.present? && post.source_description.present?
-
-    metadata = metadata_fetcher.fetch(post.url)
-    return if metadata.blank?
-
-    post.source_image_url = metadata[:image_url] if metadata[:image_url].present?
-    post.source_description = metadata[:description] if metadata[:description].present?
   end
 end

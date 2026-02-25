@@ -1,0 +1,28 @@
+<% if external_comments.any? %>
+  <% by_parent_id = Hash.new { |h, k| h[k] = [] } %>
+  <% by_parent_external_id = Hash.new { |h, k| h[k] = [] } %>
+  <% roots = [] %>
+  <% external_comments.each do |comment| %>
+    <% if comment.parent_id.present? %>
+      <% by_parent_id[comment.parent_id] << comment %>
+    <% elsif comment.parent_external_id.present? %>
+      <% by_parent_external_id[comment.parent_external_id] << comment %>
+    <% else %>
+      <% roots << comment %>
+    <% end %>
+  <% end %>
+  <% sort_comments = ->(list) { list.sort_by { |c| [c.position || 0, c.id] } } %>
+  <% render_comment = nil %>
+  <% render_comment = lambda do |comment| %>
+    <% all_children = [] %>
+    <% all_children.concat(by_parent_external_id[comment.external_id]) if comment.external_id.present? %>
+    <% all_children.concat(by_parent_id[comment.id]) %>
+    <% children = sort_comments.call(all_children) %>
+    <%= render "comments/comment", comment: comment, post: post, children: children, sort_comments: sort_comments, render_comment: render_comment, user_reactions: local_assigns.fetch(:user_reactions, {}) %>
+  <% end %>
+  <div class="mt-3">
+    <% sort_comments.call(roots).each { |comment| render_comment.call(comment) } %>
+  </div>
+<% else %>
+  <p class="mt-2 text-muted">No external comments found.</p>
+<% end %>

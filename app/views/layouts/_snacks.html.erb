@@ -1,0 +1,4 @@
+<% flash.each do |type, message| %>
+  <% danger = type.to_s.in?(%w[alert error]) %>
+  <p class="my-4 px-3.5 py-3 rounded-btn <%= danger ? "bg-danger-bg text-danger-text" : "bg-surface" %>"><%= message %></p>
+<% end %>

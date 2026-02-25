@@ -1,0 +1,8 @@
+<%= turbo_frame_tag "external-comments" do %>
+  <details id="external-comments-detail" open>
+    <summary class="cursor-pointer text-accent text-base font-medium">
+      <%= @post.external_source_name %> comments (<%= @external_comments.size %>)
+    </summary>
+    <%= render "posts/external_comments", post: @post, external_comments: @external_comments, user_reactions: @user_reactions %>
+  </details>
+<% end %>

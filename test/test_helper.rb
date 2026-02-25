@@ -2,14 +2,33 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 
+# OmniAuth test mode — no real HTTP calls to GitHub
+OmniAuth.config.test_mode = true
+
 module ActiveSupport
   class TestCase
-    # Run tests in parallel with specified workers
-    parallelize(workers: :number_of_processors)
+    # System tests + parallel = flaky; keep sequential
+    parallelize(workers: 1)
 
-    # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
+  end
+end
 
-    # Add more helper methods to be used by all tests here...
+module SignInHelper
+  def sign_in(user)
+    identity = user.identities.first!
+
+    OmniAuth.config.mock_auth[:github] = OmniAuth::AuthHash.new(
+      provider: identity.provider,
+      uid: identity.provider_uid,
+      info: {
+        nickname: identity.provider_handle || user.nickname,
+        email: identity.provider_email,
+        image: user.avatar_url
+      }
+    )
+
+    visit "/auth/github/callback"
+    assert_text "@#{user.nickname}"
   end
 end

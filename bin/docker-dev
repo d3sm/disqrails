@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -e
+
+echo "Starting Postgres via docker compose..."
+docker compose up -d db
+
+echo "Waiting for Postgres..."
+until docker compose exec db pg_isready -q 2>/dev/null; do
+  sleep 1
+done
+
+echo "Postgres ready. Starting Rails..."
+exec bin/dev

@@ -1,0 +1,42 @@
+<header class="flex justify-end items-center gap-2 pt-1 pb-3">
+  <nav class="mr-auto flex items-center gap-3 text-sm">
+    <%= link_to "Home", root_path, class: "text-muted no-underline hover:text-accent #{current_page?(root_path) ? 'text-primary font-bold' : ''}" %>
+    <%= link_to "Feeds", feeds_path, class: "text-muted no-underline hover:text-accent #{current_page?(feeds_path) ? 'text-primary font-bold' : ''}" %>
+  </nav>
+
+  <% if current_user.present? %>
+    <div class="relative" id="user-menu">
+      <button
+        type="button"
+        id="user-menu-trigger"
+        class="inline-flex items-center gap-1.5 rounded-full px-1 py-0.5 cursor-pointer hover:bg-surface-2"
+        aria-label="Account menu"
+        aria-expanded="false"
+      >
+        <%= render AvatarComponent.new(user: current_user, size: 24) %>
+        <span class="text-muted text-sm">@<%= current_user.nickname %></span>
+      </button>
+      <div class="topbar-popover absolute top-full mt-1.5 right-0 min-w-44 rounded-btn bg-surface shadow-2xl p-1.5 z-5">
+        <%= link_to "Profile", user_profile_path(current_user), class: "block text-muted no-underline rounded-lg px-2.5 py-1.5 text-sm hover:bg-surface-2 hover:text-primary" %>
+        <button
+          type="button"
+          id="theme-toggle"
+          class="w-full text-left text-muted rounded-lg px-2.5 py-1.5 text-sm cursor-pointer hover:bg-surface-2 hover:text-primary"
+          aria-expanded="false"
+        >
+          Theme
+        </button>
+        <%= button_to "Log out", logout_path, method: :delete, class: "w-full text-left text-muted rounded-lg px-2.5 py-1.5 text-sm cursor-pointer hover:bg-surface-2 hover:text-primary" %>
+      </div>
+    </div>
+  <% else %>
+    <button
+      type="button"
+      id="theme-toggle"
+      class="text-muted rounded-pill px-2.5 py-1 text-sm tracking-wide cursor-pointer hover:text-primary"
+      aria-expanded="false"
+    >
+      theme
+    </button>
+  <% end %>
+</header>

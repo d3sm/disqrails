@@ -1,0 +1,90 @@
+plugins:
+  - rubocop-rails
+  - rubocop-performance
+  - rubocop-minitest
+  - rubocop-rake
+
+AllCops:
+  TargetRubyVersion: 3.3
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - "bin/**/*"
+    - "db/schema.rb"
+    - "node_modules/**/*"
+    - "vendor/**/*"
+    - "tmp/**/*"
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - "db/migrate/**/*"
+    - "lib/tasks/**/*"
+
+Metrics/MethodLength:
+  Max: 35
+  Exclude:
+    - "db/migrate/**/*"
+
+Metrics/AbcSize:
+  Max: 50
+  Exclude:
+    - "db/migrate/**/*"
+    - "app/services/hacker_news_importer.rb"
+
+Metrics/CyclomaticComplexity:
+  Max: 12
+
+Metrics/PerceivedComplexity:
+  Max: 12
+
+Metrics/ClassLength:
+  Max: 150
+
+Metrics/ParameterLists:
+  Max: 8
+
+Metrics/BlockLength:
+  Max: 30
+  Exclude:
+    - "config/**/*"
+    - "db/migrate/**/*"
+    - "spec/**/*"
+    - "test/**/*"
+    - "lib/tasks/**/*"
+
+Rails/SkipsModelValidations:
+  Enabled: false
+
+# Existing app is English-only; i18n can come later
+Rails/I18nLocaleTexts:
+  Enabled: false
+
+# Migrations are already run; bulk change advice is retroactive
+Rails/BulkChangeTable:
+  Exclude:
+    - "db/migrate/**/*"
+
+# These are informational for existing migrations
+Rails/CreateTableWithTimestamps:
+  Exclude:
+    - "db/migrate/**/*"
+
+Rails/ThreeStateBooleanColumn:
+  Exclude:
+    - "db/migrate/**/*"
+
+Rails/DangerousColumnNames:
+  Enabled: false

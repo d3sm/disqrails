@@ -1,0 +1,9 @@
+<div class="flex items-center gap-2">
+  <% if @signed_in %>
+    <%= button_to "#{@path}?value=1", method: :post, class: upvote_class, title: "Upvote" do %>&#9650;<% end %>
+    <span class="text-base font-medium <%= score_class %>"><%= @score %></span>
+    <%= button_to "#{@path}?value=-1", method: :post, class: downvote_class, title: "Downvote" do %>&#9660;<% end %>
+  <% else %>
+    <span class="text-muted text-base"><%= @score %> pts</span>
+  <% end %>
+</div>

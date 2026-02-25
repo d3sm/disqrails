@@ -1,0 +1,7 @@
+test_blog:
+  name: Test Blog
+  url: "https://testblog.example.com/feed.xml"
+  active: true
+  featured: false
+  category: personal_blog
+  source_type: rss

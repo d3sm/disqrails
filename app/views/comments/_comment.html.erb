@@ -1,0 +1,38 @@
+<% is_external = comment.external_id.present? && !comment.local_reply? %>
+<article id="comment-<%= comment.id %>" class="comment-indent my-3 pl-3 border-l-2 <%= is_external ? 'border-l-[var(--accent)] opacity-80' : 'border-l-surface-2' %>" style="--depth: <%= [comment.depth, 8].min %>;">
+  <p class="mb-1.5 text-muted text-base">
+    <strong class="text-primary"><%= render AuthorComponent.new(user: comment.user, author_text: comment.display_author, show_avatar: comment.local_reply?) %></strong>
+    <% if is_external %>
+      <span class="inline-block ml-1.5 rounded-pill px-2 py-px text-xs text-badge-ext-text bg-badge-ext-bg align-[0.2rem]">external</span>
+    <% elsif comment.local_reply? %>
+      <span class="ml-1.5">local</span>
+    <% end %>
+    <% if comment.posted_at.present? %>
+      <span class="ml-1.5"><%= time_ago_in_words(comment.posted_at) %> ago</span>
+    <% end %>
+  </p>
+  <div class="[&_p]:my-1 [&_pre]:text-sm [&_code]:text-sm [&_blockquote]:my-1.5 [&_blockquote]:py-0.5 [&_blockquote]:pl-3 [&_blockquote]:border-l-3 [&_blockquote]:border-l-line [&_blockquote]:text-muted">
+    <%= sanitize(comment.display_body_html, tags: %w[p br a pre code i em b strong blockquote ul ol li], attributes: %w[href title]) %>
+  </div>
+  <% user_reaction = local_assigns.fetch(:user_reactions, {})[comment.id] %>
+  <% reaction_score = comment.comment_reactions.loaded? ? comment.comment_reactions.sum(&:value) : comment.score %>
+  <div class="mt-1">
+    <%= render VotingControlsComponent.new(path: comment_reaction_path(comment), score: reaction_score, user_reaction: user_reaction, signed_in: !!current_user) %>
+  </div>
+  <% if current_user %>
+    <% if is_external %>
+      <% plain_text = strip_tags(comment.display_body_html).squish %>
+      <button type="button" data-quote-text="<%= plain_text %>" class="mt-2 cursor-pointer text-accent text-base bg-transparent border-0 p-0 hover:underline">Quote</button>
+    <% else %>
+      <details class="mt-2">
+        <summary class="cursor-pointer text-accent text-base">Reply</summary>
+        <%= form_with url: post_comments_path(post), method: :post, local: true, class: "mt-2 grid gap-2" do %>
+          <%= hidden_field_tag :parent_id, comment.id %>
+          <%= text_area_tag :body, nil, rows: 3, required: true, placeholder: "Write a reply...", class: "w-full px-3 py-2.5 rounded-btn border border-line bg-white text-primary font-inherit focus:outline-2 focus:outline-accent-light focus:outline-offset-1 focus:border-accent" %>
+          <%= submit_tag "Add Reply", class: "w-fit bg-surface-2 text-primary rounded-lg px-3 py-1.5 cursor-pointer hover:text-accent" %>
+        <% end %>
+      </details>
+    <% end %>
+  <% end %>
+</article>
+<% children.each { |child| render_comment.call(child) } %>

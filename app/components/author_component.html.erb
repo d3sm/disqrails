@@ -1,0 +1,10 @@
+<% if linkable? %>
+  <%= link_to helpers.user_profile_path(@user), class: "inline-flex items-center gap-1 text-primary no-underline hover:underline" do %>
+    <% if @show_avatar %>
+      <%= render AvatarComponent.new(user: @user, size: 16) %>
+    <% end %>
+    <span><%= @user.nickname %></span>
+  <% end %>
+<% else %>
+  <span><%= display_name %></span>
+<% end %>

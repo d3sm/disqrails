@@ -1,0 +1,11 @@
+local_comment:
+  post: feed_post
+  user_id: "b2222222-2222-2222-2222-222222222222"
+  author: bob
+  body_html: "<p>Great article about GC!</p>"
+  local_reply: true
+  depth: 0
+  position: 1
+  posted_at: <%= 1.hour.ago.iso8601 %>
+  created_at: <%= 1.hour.ago.iso8601 %>
+  updated_at: <%= 1.hour.ago.iso8601 %>

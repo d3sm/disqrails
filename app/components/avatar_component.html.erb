@@ -1,0 +1,5 @@
+<% if show_image? %>
+  <%= image_tag @user.avatar_url, alt: "", class: "#{size_class} rounded-full object-cover", loading: "lazy", width: @size, height: @size %>
+<% else %>
+  <span class="inline-flex items-center justify-center <%= size_class %> rounded-full bg-surface-2 text-muted text-xs font-bold"><%= initial %></span>
+<% end %>

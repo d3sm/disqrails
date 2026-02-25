@@ -1,5 +1,3 @@
-require "set"
-
 class HackerNewsCommentsImporter
   DEFAULT_MAX_COMMENTS = 120
   DEFAULT_MAX_DEPTH = 6
@@ -9,7 +7,8 @@ class HackerNewsCommentsImporter
     @client = client
   end
 
-  def import_for_post(post, max_comments: DEFAULT_MAX_COMMENTS, max_depth: DEFAULT_MAX_DEPTH, max_seconds: DEFAULT_MAX_SECONDS)
+  def import_for_post(post, max_comments: DEFAULT_MAX_COMMENTS, max_depth: DEFAULT_MAX_DEPTH,
+                      max_seconds: DEFAULT_MAX_SECONDS)
     return { imported: 0, skipped: 0 } if post.external_id.blank?
 
     story = client.item(post.external_id)
@@ -70,7 +69,7 @@ class HackerNewsCommentsImporter
         depth: depth,
         author: item["by"],
         body_html: item["text"],
-        posted_at: item["time"].present? ? Time.at(item["time"]) : nil,
+        posted_at: item["time"].present? ? Time.zone.at(item["time"]) : nil,
         hn_deleted: item["deleted"] == true,
         hn_dead: item["dead"] == true
       }

@@ -2,69 +2,109 @@ class PostsController < ApplicationController
   PER_PAGE = 20
 
   def index
-    scope = Post.where(source: "hacker_news").frontpage_order
-    should_refresh = scope.none? || params[:refresh] == "1"
-    if should_refresh
-      auto_import_hn!
-      scope = Post.where(source: "hacker_news").frontpage_order
-    end
+    @source_filter = params[:source]
+    @tag_filter = params[:tag]
+    @sort = Post::SORT_MODES.include?(params[:sort]) ? params[:sort] : "new"
+
+    scope = if @source_filter == "external"
+              external_scope
+            elsif @source_filter == "feed"
+              feed_scope
+            else
+              all_scope
+            end
+
+    scope = apply_tag_filter(scope)
+    scope = apply_subscription_filter(scope)
+    scope = Post.apply_sort(scope, @sort)
+
+    @current_tag = Tag.find_by(slug: @tag_filter) if @tag_filter.present?
+    @tags = Tag.joins(:feeds).distinct.order("tags.name")
 
     @page = [params.fetch(:page, 1).to_i, 1].max
-    @posts = scope.offset((@page - 1) * PER_PAGE).limit(PER_PAGE)
+    @posts = scope.includes(:feed, :user).offset((@page - 1) * PER_PAGE).limit(PER_PAGE)
     @next_page = scope.offset(@page * PER_PAGE).exists? ? @page + 1 : nil
-
-    respond_to do |format|
-      format.html
-      format.json do
-        render json: {
-          posts: @posts.map { |post| serialized_post(post) },
-          next_page: @next_page
-        }
-      end
-    end
   end
 
+  COMMENT_SORT_MODES = %w[threaded newest oldest].freeze
+
   def show
-    @post = Post.where(source: "hacker_news").find(params[:id])
-    auto_import_hn_comments!(@post) if params[:load_comments] == "1"
-    @comments = @post.comments.threaded_order
+    @post = Post.find_by_param!(params[:id])
+    @comment_sort = COMMENT_SORT_MODES.include?(params[:comment_sort]) ? params[:comment_sort] : "threaded"
+    all_comments = @post.comments.includes(:comment_reactions, :user).then { |scope| apply_comment_sort(scope) }
+    @local_comments = all_comments.select { |c| c.local_reply? || c.external_id.blank? }
+    @external_comments = all_comments.select { |c| c.external_id.present? && !c.local_reply? }
+    @external_comments_loaded = @external_comments.any?
+    @user_reactions = build_user_reactions(all_comments)
+    @post_reaction = current_user&.post_reactions&.find_by(post: @post)
+  end
+
+  def load_external_comments
+    @post = Post.find_by_param!(params[:id])
+    import_external_comments!(@post)
+    all_comments = @post.comments.includes(:comment_reactions, :user).threaded_order
+    @external_comments = all_comments.select { |c| c.external_id.present? && !c.local_reply? }
+    @user_reactions = build_user_reactions(all_comments)
+
+    render layout: false
   end
 
   private
 
-  def auto_import_hn!
-    result = HackerNewsImporter.new.import_top_stories(limit: 30)
-    Rails.cache.write("hn:last_imported_at", Time.current) unless result[:error]
-  rescue StandardError => e
-    Rails.logger.warn("HN auto import failed: #{e.message}")
+  def build_user_reactions(comments)
+    return {} unless current_user
+
+    ids = comments.map(&:id)
+    current_user.comment_reactions.where(comment_id: ids).index_by(&:comment_id)
   end
 
-  def auto_import_hn_comments!(post)
+  def feed_scope
+    Post.where(source: "feed")
+  end
+
+  def external_scope
+    ImportHackerNewsJob.perform_later if Post.from_external.none? || params[:refresh] == "1"
+    Post.from_external
+  end
+
+  def all_scope
+    if Post.none?
+      FetchAllFeedsJob.perform_later
+      ImportHackerNewsJob.perform_later
+    elsif params[:refresh] == "1"
+      ImportHackerNewsJob.perform_later
+    end
+    Post.all
+  end
+
+  def apply_tag_filter(scope)
+    return scope if @tag_filter.blank?
+
+    scope.joins(feed: :tags).where(tags: { slug: @tag_filter })
+  end
+
+  def apply_subscription_filter(scope)
+    return scope unless current_user&.subscriptions&.any?
+
+    subscribed_feed_ids = current_user.subscribed_feeds.pluck(:id)
+    scope.where("posts.source IN (?) OR posts.feed_id IN (?)", Post::EXTERNAL_SOURCES.keys, subscribed_feed_ids)
+  end
+
+  def apply_comment_sort(scope)
+    case @comment_sort
+    when "newest" then scope.order(posted_at: :desc, id: :desc)
+    when "oldest" then scope.order(posted_at: :asc, id: :asc)
+    else scope.threaded_order
+    end
+  end
+
+  def import_external_comments!(post)
     return if post.external_id.blank?
 
-    cache_key = "hn:comments:last_imported_at:#{post.id}"
-    last_imported_at = Rails.cache.read(cache_key)
-    needs_import = post.comments.none? && (last_imported_at.nil? || last_imported_at < 30.minutes.ago)
-    return unless needs_import
-
     result = HackerNewsCommentsImporter.new.import_for_post(post, max_comments: 120, max_depth: 6, max_seconds: 2.5)
+    cache_key = "external:comments:last_imported_at:#{post.id}"
     Rails.cache.write(cache_key, Time.current) unless result[:error]
   rescue StandardError => e
-    Rails.logger.warn("HN comments import failed for post=#{post.id}: #{e.message}")
-  end
-
-  def serialized_post(post)
-    {
-      id: post.id,
-      title: post.title,
-      path: post_path(post),
-      source: post.source,
-      url: post.url,
-      score: helpers.pluralize(post.score, "point"),
-      author: post.author_name,
-      comments: helpers.pluralize(post.comment_count, "comment"),
-      rank: post.hn_rank,
-      created_ago: helpers.time_ago_in_words(post.created_at)
-    }
+    Rails.logger.warn("External comments import failed for post=#{post.id}: #{e.message}")
   end
 end

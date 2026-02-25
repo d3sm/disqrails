@@ -1,0 +1,33 @@
+<section class="mt-6 mb-4">
+  <h1 class="m-0 text-2xl sm:text-3xl leading-tight"><%= link_to "Feeds", feeds_path, class: "text-primary no-underline hover:underline" %></h1>
+  <p class="mt-1.5 mb-0 text-muted">Subscribe to feeds to customize your frontpage.</p>
+
+  <nav class="mt-2 flex gap-2 flex-wrap text-base">
+    <%= link_to "All", feeds_path, class: "no-underline #{@current_tag.blank? ? 'text-primary font-bold' : 'text-muted hover:text-accent'}" %>
+    <% @tags.each do |tag| %>
+      <%= link_to tag.name, feeds_path(tag: tag.slug), class: "no-underline rounded-pill px-2 py-px text-xs #{@current_tag == tag ? 'bg-accent text-white' : 'bg-surface-2 text-muted hover:text-accent'}" %>
+    <% end %>
+  </nav>
+</section>
+
+<section class="card p-2.5 mb-4">
+  <h2 class="text-sm text-muted mb-1.5 mt-0">Add a feed</h2>
+  <%= form_with url: feeds_path, method: :post, class: "flex gap-2" do |f| %>
+    <%= f.text_field :feed_url, placeholder: "https://example.com/feed.xml", class: "flex-1 rounded-btn border border-surface-2 bg-surface px-2.5 py-1.5 text-sm text-primary placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-accent" %>
+    <%= f.submit "Add Feed", class: "rounded-btn bg-accent text-white px-3 py-1.5 text-sm cursor-pointer hover:opacity-90" %>
+  <% end %>
+</section>
+
+<% Feed::CATEGORIES.each do |category_key, category_label| %>
+  <% feeds = @feeds_by_category[category_key] %>
+  <% next if feeds.blank? %>
+
+  <section class="card p-2.5 mb-3">
+    <h2 class="text-base text-muted mt-0 mb-1.5"><%= category_label %></h2>
+    <ul class="list-none m-0 p-0">
+      <% feeds.each do |feed| %>
+        <%= render "feeds/feed_item", feed: feed, subscribed: @subscribed_feed_ids.include?(feed.id) %>
+      <% end %>
+    </ul>
+  </section>
+<% end %>

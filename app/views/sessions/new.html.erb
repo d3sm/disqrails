@@ -1,0 +1,12 @@
+<section class="mt-6 mb-4">
+  <h1 class="m-0 text-2xl sm:text-3xl leading-tight">Sign In</h1>
+  <p class="mt-1.5 mb-0 text-muted">DisqRails uses GitHub-only authentication.</p>
+</section>
+<section class="card p-4">
+  <% if github_oauth_ready? %>
+    <%= button_to "Continue with GitHub", "/auth/github", method: :post, class: "inline-block no-underline px-3 py-2 rounded-btn bg-accent text-white text-base hover:brightness-[0.94]", form: { data: { turbo: false } } %>
+  <% else %>
+    <p class="my-0.5 text-muted">GitHub OAuth is not configured yet.</p>
+    <p class="my-0.5 text-muted">Set <code>GITHUB_CLIENT_ID</code>/<code>GITHUB_CLIENT_SECRET</code> or Rails credentials <code>github.client_id</code>/<code>github.client_secret</code>, then restart.</p>
+  <% end %>
+</section>

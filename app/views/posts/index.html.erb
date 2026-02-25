@@ -1,45 +1,69 @@
-<section class="page-head">
-  <h1 class="page-title"><%= link_to "Hacker on Rails", latest_posts_path, class: "post-title" %></h1>
-  <p class="page-subtitle">Read-only mirror of Hacker News top stories.</p>
-  <p class="page-subtitle"><%= link_to "Refresh stories", posts_path(refresh: 1), class: "top-link" %></p>
+<section class="mt-6 mb-4">
+  <h1 class="m-0 text-2xl sm:text-3xl leading-tight"><%= link_to "disqrails", root_path, class: "text-primary no-underline hover:underline" %></h1>
+
+  <details class="mt-4 mb-8 text-muted text-sm">
+    <summary class="cursor-pointer hover:text-primary list-none">
+      <span class="select-none">👉🏻</span> About this site
+    </summary>
+
+    <div class="mt-1 pl-4">
+      <p class="my-1">A personal feed reader I built to run through headlines and try new stack. Feel free to fork or use this instance via GitHub Auth.</p>
+      <p>
+        Inspired by:
+        <%= link_to "Lobsters", "https://lobste.rs", class: "text-accent no-underline hover:underline", target: "_blank" %>,
+        <%= link_to "engineeringblogs.xyz", "https://engineeringblogs.xyz", class: "text-accent no-underline hover:underline", target: "_blank" %>,
+        <%= link_to "Bear Blog", "https://bearblog.dev/discover/", class: "text-accent no-underline hover:underline", target: "_blank" %>,
+        <%= link_to "Techmeme", "https://www.techmeme.com", class: "text-accent no-underline hover:underline", target: "_blank" %>,
+        <%= link_to "LWN", "https://lwn.net", class: "text-accent no-underline hover:underline", target: "_blank" %>,
+        <%= link_to "Lemmy", "https://lemmy.ml/c/technology", class: "text-accent no-underline hover:underline", target: "_blank" %>
+      </p>
+    </div>
+  </details>
+
+  <nav class="mb-4 flex gap-3 text-base">
+    <%= link_to "All", posts_path, class: "no-underline #{@source_filter.blank? && @tag_filter.blank? ? 'text-primary font-bold' : 'text-muted hover:text-accent'}" %>
+    <%= link_to "Blogs", posts_path(source: "feed"), class: "no-underline #{@source_filter == 'feed' ? 'text-primary font-bold' : 'text-muted hover:text-accent'}" %>
+    <%= link_to "Discussions", posts_path(source: "external"), class: "no-underline #{@source_filter == 'external' ? 'text-primary font-bold' : 'text-muted hover:text-accent'}" %>
+    <%= link_to "Feeds", feeds_path, class: "no-underline text-muted hover:text-accent" %>
+
+    <span class="ml-auto flex gap-2">
+      <% { "new" => "New", "top" => "Top", "source_rank" => "Rank" }.each do |mode, label| %>
+        <%= link_to label, posts_path(source: @source_filter, tag: @tag_filter, sort: mode),
+          class: "no-underline text-sm #{@sort == mode ? 'text-primary font-bold' : 'text-muted hover:text-accent'}" %>
+      <% end %>
+    </span>
+  </nav>
+
+  <% if @tags.any? %>
+    <div class="mt-1.5 flex flex-wrap gap-1">
+      <% @tags.each do |tag| %>
+        <% active = @current_tag&.id == tag.id %>
+        <%= link_to tag.name, posts_path(source: @source_filter, tag: tag.slug, sort: @sort),
+          class: "rounded-pill px-2 py-px text-xs no-underline #{active ? 'bg-accent text-white' : 'bg-surface-2 text-muted hover:text-accent'}" %>
+      <% end %>
+    </div>
+  <% end %>
 </section>
 
-<section class="list-card">
+<% if @current_tag.present? %>
+  <div class="mb-2 flex items-center gap-2 text-sm">
+    <span class="text-muted">Showing posts tagged:</span>
+    <span class="rounded-pill px-2 py-px text-xs bg-accent text-white"><%= @current_tag.name %></span>
+    <%= link_to "clear", posts_path(source: @source_filter, sort: @sort), class: "text-accent no-underline hover:underline text-xs" %>
+  </div>
+<% end %>
+
+<section class="card p-2.5">
   <% if @posts.any? %>
-    <ol
-      class="post-list"
-      id="post-list"
-      data-next-page="<%= @next_page %>"
-      data-fetch-url="<%= posts_path(format: :json) %>"
-    >
+    <ol class="list-numbered m-0 p-0 pl-10">
       <% @posts.each do |post| %>
-        <li class="post-item">
-          <%= link_to post.title, post_path(post), class: "post-title" %>
-          <% if post.source == "hacker_news" %>
-            <span class="source-badge">hn</span>
-          <% end %>
-          <% if post.url.present? %>
-            <span class="post-domain"><%= post.url %></span>
-          <% end %>
-          <div class="post-meta">
-            <span><%= pluralize(post.score, "point") %></span>
-            <span>by <%= post.author_name %></span>
-            <span><%= pluralize(post.comment_count, "comment") %></span>
-            <% if post.source == "hacker_news" && post.hn_rank.present? %>
-              <span>rank #<%= post.hn_rank %> on hn</span>
-            <% end %>
-            <span>posted <%= time_ago_in_words(post.created_at) %> ago</span>
-          </div>
-        </li>
+        <%= render "posts/post_item", post: post %>
       <% end %>
+      <%= render "posts/load_more" %>
     </ol>
-    <div class="posts-pagination">
-      <button type="button" id="posts-load-more" class="posts-load-more">Load 20 more</button>
-      <div id="posts-sentinel" class="posts-sentinel" aria-hidden="true"></div>
-    </div>
   <% else %>
-    <p class="empty-state">
-      No posts yet. Refresh in a moment to let the Hacker News importer run.
+    <p class="my-4 text-muted text-center">
+      Posts are being fetched &mdash; check back in a minute.
     </p>
   <% end %>
 </section>
