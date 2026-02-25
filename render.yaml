@@ -17,8 +17,6 @@ services:
         fromDatabase:
           name: disqrails-db
           property: connectionString
-      - key: RAILS_MASTER_KEY
-        sync: false
       - key: GITHUB_CLIENT_ID
         sync: false
       - key: GITHUB_CLIENT_SECRET
