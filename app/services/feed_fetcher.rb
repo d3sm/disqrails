@@ -52,10 +52,13 @@ class FeedFetcher
       author: clean_text(entry_author(entry, feed)),
       text: entry_summary(entry),
       published_at: entry.published || entry.updated,
-      source_description: clean_text(entry_description(entry))
+      source_description: clean_text(entry_description(entry)),
+      source_image_url: extract_image(entry)
     )
 
     post.save!
+    FetchArticleMetadataJob.perform_later(post.id) if post.source_image_url.blank? || post.source_description.blank?
+    post
   end
 
   def fetch_xml(feed, redirects: MAX_REDIRECTS)
@@ -104,6 +107,17 @@ class FeedFetcher
     return if text.blank?
 
     text.gsub(/<[^>]*>/, " ").squish.truncate(300)
+  end
+
+  def extract_image(entry)
+    content = (entry.content.presence || entry.summary.presence).to_s
+    src = content[/<img[^>]+src=["']([^"']+)["']/i, 1]
+    return nil if src.blank?
+
+    # Skip tiny tracking pixels / badges
+    return nil if src.match?(/badge|pixel|track|feeds\.feedburner|\.gif$/i)
+
+    src
   end
 
   def clean_text(value)

@@ -21,6 +21,15 @@ export function init() {
       return
     }
 
+    // Theme toggle lives inside the menu — dismiss menu when clicked
+    if (e.target.closest("#theme-toggle")) {
+      const openMenu = document.querySelector("#user-menu[data-open]")
+      if (openMenu) {
+        close(openMenu, openMenu.querySelector("#user-menu-trigger"))
+      }
+      return
+    }
+
     // Click outside — close any open menu
     const openMenu = document.querySelector("#user-menu[data-open]")
     if (openMenu && !openMenu.contains(e.target)) {

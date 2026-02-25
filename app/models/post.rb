@@ -105,7 +105,10 @@ class Post < ApplicationRecord
   end
 
   def display_description
-    source_description.presence || text_summary
+    raw = source_description.presence || text_summary
+    return if raw.blank?
+
+    CGI.unescapeHTML(raw)
   end
 
   def effective_time

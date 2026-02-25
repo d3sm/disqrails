@@ -36,7 +36,9 @@ class HackerNewsImporter
         next
       end
 
+      needs_metadata = post.url.present? && (post.source_image_url.blank? || post.source_description.blank?)
       post.save!
+      FetchArticleMetadataJob.perform_later(post.id) if needs_metadata
       imported += 1
     end
 

@@ -22,7 +22,52 @@ const normalizeColor = (value) => {
   return null
 }
 
+const catppuccinDefaults = () => {
+  const vars = {}
+  themeConfig.forEach((item) => { vars[item.key] = item.default })
+  return vars
+}
+
+const applyVars = (vars) => {
+  const root = document.documentElement
+  themeVarNames.forEach((name) => root.style.removeProperty(name))
+  Object.entries(vars).forEach(([name, value]) => {
+    if (themeVarNames.includes(name) && normalizeColor(value)) {
+      root.style.setProperty(name, value)
+    }
+  })
+}
+
+// Apply saved or default theme immediately (before full init)
+const applySavedTheme = () => {
+  const raw = localStorage.getItem(STORAGE_KEY)
+  if (raw) {
+    try {
+      const saved = JSON.parse(raw)
+      if (saved && typeof saved === "object") {
+        applyVars(saved)
+        return saved
+      }
+    } catch (_) {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }
+  // Fresh user — apply Catppuccin defaults and persist
+  const defaults = catppuccinDefaults()
+  applyVars(defaults)
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults))
+  return defaults
+}
+
+// Apply theme vars as early as possible
+let currentVars = applySavedTheme()
+
+let bound = false
+
 export function init() {
+  // Re-apply theme vars on every Turbo navigation (new DOM, inline styles lost)
+  applyVars(currentVars)
+
   const grid = document.getElementById("theme-grid")
   const applyBtn = document.getElementById("theme-apply")
   const resetBtn = document.getElementById("theme-reset")
@@ -31,31 +76,29 @@ export function init() {
   const panel = document.getElementById("theme-lab-panel")
   if (!grid || !applyBtn || !resetBtn || !status || !toggleBtn || !panel) return
 
-  const root = document.documentElement
   const inputByKey = {}
 
-  const buildThemeInputs = () => {
-    if (grid.children.length > 0) return
-    themeConfig.forEach((item) => {
-      const wrap = document.createElement("label")
-      wrap.className = "theme-field block"
+  // Build inputs fresh each time (Turbo replaces the DOM)
+  grid.innerHTML = ""
+  themeConfig.forEach((item) => {
+    const wrap = document.createElement("label")
+    wrap.className = "theme-field block"
 
-      const caption = document.createElement("span")
-      caption.className = "inline-block mb-0.5 text-muted text-sm"
-      caption.textContent = item.label
-      wrap.appendChild(caption)
+    const caption = document.createElement("span")
+    caption.className = "inline-block mb-0.5 text-muted text-sm"
+    caption.textContent = item.label
+    wrap.appendChild(caption)
 
-      const input = document.createElement("input")
-      input.type = "text"
-      input.value = item.default
-      input.placeholder = "#RRGGBB"
-      input.dataset.themeVar = item.key
-      wrap.appendChild(input)
+    const input = document.createElement("input")
+    input.type = "text"
+    input.value = currentVars[item.key] || item.default
+    input.placeholder = "#RRGGBB"
+    input.dataset.themeVar = item.key
+    wrap.appendChild(input)
 
-      inputByKey[item.key] = input
-      grid.appendChild(wrap)
-    })
-  }
+    inputByKey[item.key] = input
+    grid.appendChild(wrap)
+  })
 
   const readThemeInputs = () => {
     const vars = {}
@@ -66,68 +109,64 @@ export function init() {
     return vars
   }
 
-  const fillThemeInputs = (vars) => {
-    themeConfig.forEach((item) => {
-      const input = inputByKey[item.key]
-      if (!input) return
-      input.value = vars[item.key] || item.default
-    })
-  }
+  // Use delegation for buttons to avoid duplicate listeners
+  if (!bound) {
+    bound = true
 
-  const applyVars = (vars) => {
-    themeVarNames.forEach((name) => root.style.removeProperty(name))
-    Object.entries(vars).forEach(([name, value]) => {
-      if (themeVarNames.includes(name) && normalizeColor(value)) {
-        root.style.setProperty(name, value)
+    document.addEventListener("click", (e) => {
+      if (e.target.closest("#theme-apply")) {
+        const grid = document.getElementById("theme-grid")
+        const status = document.getElementById("theme-status")
+        if (!grid || !status) return
+
+        const inputs = grid.querySelectorAll("input[data-theme-var]")
+        const parsed = {}
+        inputs.forEach((input) => {
+          const value = normalizeColor(input.value)
+          if (value) parsed[input.dataset.themeVar] = value
+        })
+
+        if (Object.keys(parsed).length === 0) {
+          status.textContent = "Add valid hex values like #89b4fa."
+          return
+        }
+        applyVars(parsed)
+        currentVars = parsed
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed))
+        status.textContent = `Applied ${Object.keys(parsed).length} theme variables.`
+        return
+      }
+
+      if (e.target.closest("#theme-reset")) {
+        const defaults = catppuccinDefaults()
+        applyVars(defaults)
+        currentVars = defaults
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults))
+
+        const grid = document.getElementById("theme-grid")
+        const status = document.getElementById("theme-status")
+        if (grid) {
+          grid.querySelectorAll("input[data-theme-var]").forEach((input) => {
+            input.value = defaults[input.dataset.themeVar] || ""
+          })
+        }
+        if (status) status.textContent = "Theme reset to Catppuccin."
+        return
+      }
+
+      if (e.target.closest("#theme-toggle")) {
+        const panel = document.getElementById("theme-lab-panel")
+        const toggleBtn = e.target.closest("#theme-toggle")
+        if (!panel) return
+        const isHidden = panel.hasAttribute("hidden")
+        if (isHidden) {
+          panel.removeAttribute("hidden")
+          if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "true")
+        } else {
+          panel.setAttribute("hidden", "")
+          if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "false")
+        }
       }
     })
   }
-
-  buildThemeInputs()
-  const savedRaw = localStorage.getItem(STORAGE_KEY)
-  if (savedRaw) {
-    try {
-      const saved = JSON.parse(savedRaw)
-      if (saved && typeof saved === "object") {
-        fillThemeInputs(saved)
-        applyVars(saved)
-        status.textContent = "Loaded saved theme."
-      }
-    } catch (_) {
-      localStorage.removeItem(STORAGE_KEY)
-    }
-  } else {
-    fillThemeInputs({})
-  }
-
-  applyBtn.addEventListener("click", () => {
-    const parsed = readThemeInputs()
-    if (Object.keys(parsed).length === 0) {
-      status.textContent = "Add valid hex values like #89b4fa."
-      return
-    }
-    applyVars(parsed)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed))
-    status.textContent = `Applied ${Object.keys(parsed).length} theme variables.`
-  })
-
-  resetBtn.addEventListener("click", () => {
-    const defaults = {}
-    themeConfig.forEach((item) => { defaults[item.key] = item.default })
-    fillThemeInputs(defaults)
-    applyVars(defaults)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults))
-    status.textContent = "Theme reset to Catppuccin."
-  })
-
-  toggleBtn.addEventListener("click", () => {
-    const isHidden = panel.hasAttribute("hidden")
-    if (isHidden) {
-      panel.removeAttribute("hidden")
-      toggleBtn.setAttribute("aria-expanded", "true")
-    } else {
-      panel.setAttribute("hidden", "")
-      toggleBtn.setAttribute("aria-expanded", "false")
-    }
-  })
 }

@@ -13,7 +13,7 @@ class ReactionsController < ApplicationController
     existing = scope.find_by(@reactable_key => @reactable)
 
     if existing
-      existing.value == value ? existing.destroy! : existing.update!(value: value)
+      existing.destroy!
     else
       scope.create!(@reactable_key => @reactable, value: value)
     end

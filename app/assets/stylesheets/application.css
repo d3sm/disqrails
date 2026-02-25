@@ -4,14 +4,14 @@
  * All layout and component styles now use Tailwind utilities.
  */
 :root {
-  --bg: #f3efe5;
-  --surface: #fffdf9;
-  --surface-2: #f7f2e7;
-  --line: #d7cfbf;
-  --text: #2e2a24;
-  --muted: #7f7464;
-  --accent: #0d7f6f;
-  --danger-bg: #fce8e5;
-  --danger-line: #e7b8ae;
-  --danger-text: #8f2e1c;
+  --bg: #1e1e2e;
+  --surface: #181825;
+  --surface-2: #313244;
+  --line: #45475a;
+  --text: #cdd6f4;
+  --muted: #a6adc8;
+  --accent: #89b4fa;
+  --danger-bg: #3a1d2e;
+  --danger-line: #f38ba8;
+  --danger-text: #f38ba8;
 }

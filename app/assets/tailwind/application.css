@@ -39,18 +39,19 @@
   --shadow-popover: 0 10px 30px rgba(47, 39, 26, 0.12);
 }
 
-/* Runtime CSS custom properties for the theme lab hex editor */
+/* Runtime CSS custom properties — Catppuccin Mocha defaults.
+   theme_lab.js overrides these at runtime from localStorage. */
 :root {
-  --bg: #f3efe5;
-  --surface: #fffdf9;
-  --surface-2: #f7f2e7;
-  --line: #d7cfbf;
-  --text: #2e2a24;
-  --muted: #7f7464;
-  --accent: #0d7f6f;
-  --danger-bg: #fce8e5;
-  --danger-line: #e7b8ae;
-  --danger-text: #8f2e1c;
+  --bg: #1e1e2e;
+  --surface: #181825;
+  --surface-2: #313244;
+  --line: #45475a;
+  --text: #cdd6f4;
+  --muted: #a6adc8;
+  --accent: #89b4fa;
+  --danger-bg: #3a1d2e;
+  --danger-line: #f38ba8;
+  --danger-text: #f38ba8;
 }
 
 /* Grain texture overlay */

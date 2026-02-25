@@ -7,19 +7,23 @@
   <% if post.source_domain.present? %>
     <p class="mt-1.5 mb-0 text-muted">Source: <%= post.source_domain %></p>
   <% end %>
-  <% if post.display_description.present? %>
+  <% if post.text.present? %>
+    <div class="mt-2.5 mb-3.5 [&_p]:my-1 [&_a]:text-accent [&_a]:no-underline [&_a:hover]:underline [&_pre]:text-sm [&_code]:text-sm">
+      <%= sanitize(post.text, tags: %w[p br a pre code i em b strong blockquote ul ol li hr], attributes: %w[href title rel]) %>
+    </div>
+  <% elsif post.display_description.present? %>
     <p class="mt-2.5 mb-3.5"><%= post.display_description %></p>
   <% end %>
-  <% if post.url.present? %>
+  <% if post.external_source? && post.url.present? %>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "Read Source", post.url, target: "_blank", rel: "noopener", class: "inline-block no-underline px-3 py-2 rounded-btn bg-accent text-white text-base hover:brightness-[0.94]" %>
+      <% if post.external_discussion_url.present? %>
+        <%= link_to "Read #{post.external_source_name}", post.external_discussion_url, target: "_blank", rel: "noopener", class: "inline-block no-underline px-3 py-2 rounded-btn bg-surface-2 text-primary text-base hover:text-accent" %>
+      <% end %>
+    </div>
+  <% elsif post.url.present? %>
     <p>
       <%= link_to "Read Full Article", post.url, target: "_blank", rel: "noopener", class: "inline-block no-underline px-3 py-2 rounded-btn bg-accent text-white text-base hover:brightness-[0.94]" %>
     </p>
-  <% end %>
-  <% if post.text.present? %>
-    <div class="mt-4 pt-4 border-t border-t-surface-2">
-      <%= simple_format(post.text) %>
-    </div>
-  <% elsif post.url.blank? %>
-    <p class="my-0.5 text-muted">No content is available for this post yet.</p>
   <% end %>
 </article>
