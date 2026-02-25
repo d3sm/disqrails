@@ -1,5 +1,5 @@
 <li class="py-3.5 pr-2 [&+li]:border-t [&+li]:border-t-surface-2">
-  <%= link_to post.title, post_path(post), class: "text-primary no-underline text-lg hover:underline" %>
+  <%= link_to post.title, post_path(post), class: "text-primary no-underline text-lg hover:underline", data: { turbo_frame: "_top" } %>
   <% if post.external_source? %>
     <span class="inline-block ml-1.5 rounded-pill px-2 py-px text-xs text-badge-ext-text bg-badge-ext-bg align-[0.2rem]"><%= post.external_source_label %><%= " #{post.hn_score}pts" if post.hn_score.to_i > 0 %></span>
   <% elsif post.source == "feed" && post.feed.present? %>
