@@ -4,6 +4,9 @@
       <nav class="mr-auto flex items-center gap-3 text-sm">
         <%= link_to "Home", root_path, class: "text-muted no-underline hover:text-accent #{current_page?(root_path) ? 'text-primary font-bold' : ''}" %>
         <%= link_to "Feeds", feeds_path, class: "text-muted no-underline hover:text-accent #{current_page?(feeds_path) ? 'text-primary font-bold' : ''}" %>
+        <% if current_page?(root_path) || current_page?(posts_path) %>
+          <%= button_to "Refresh", refresh_posts_path, method: :post, data: { turbo_submits_with: "Refreshing..." }, class: "text-muted hover:text-accent text-xs cursor-pointer bg-transparent border-0 p-0" %>
+        <% end %>
       </nav>
       <% if current_user.present? %>
         <div class="relative" id="user-menu">

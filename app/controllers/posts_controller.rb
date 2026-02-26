@@ -38,6 +38,12 @@ class PostsController < ApplicationController
     @post_reaction = current_user&.post_reactions&.find_by(post: @post)
   end
 
+  def refresh
+    Feed.due.find_each { |feed| FeedFetcher.new.fetch(feed) }
+    HackerNewsImporter.new.import_top_stories(limit: 30)
+    redirect_back fallback_location: posts_path, notice: "Feeds refreshed"
+  end
+
   def load_external_comments
     @post = Post.find_by_param!(params[:id])
     import_external_comments!(@post)
@@ -62,17 +68,10 @@ class PostsController < ApplicationController
   end
 
   def external_scope
-    ImportHackerNewsJob.perform_later if Post.from_external.none? || params[:refresh] == "1"
     Post.from_external
   end
 
   def all_scope
-    if Post.none?
-      FetchAllFeedsJob.perform_later
-      ImportHackerNewsJob.perform_later
-    elsif params[:refresh] == "1"
-      ImportHackerNewsJob.perform_later
-    end
     Post.all
   end
 

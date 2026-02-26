@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   resources :subscriptions, only: [:create, :destroy]
 
   get "latest", to: "posts#index", as: :latest_posts
+  post "posts/refresh", to: "posts#refresh", as: :refresh_posts
   resources :posts, only: [:index, :show] do
     resources :comments, only: [:create]
     get :load_external_comments, on: :member

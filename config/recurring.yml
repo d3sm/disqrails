@@ -1,11 +1,12 @@
-fetch_all_feeds:
-  class: FetchAllFeedsJob
-  schedule: every 15 minutes
+production:
+  fetch_all_feeds:
+    class: FetchAllFeedsJob
+    schedule: every 15 minutes
 
-import_hacker_news:
-  class: ImportHackerNewsJob
-  schedule: every 15 minutes
+  import_hacker_news:
+    class: ImportHackerNewsJob
+    schedule: every 15 minutes
 
-prune_stale_data:
-  class: PruneStaleDataJob
-  schedule: every day at 4am
+  prune_stale_data:
+    class: PruneStaleDataJob
+    schedule: every day at 4am
