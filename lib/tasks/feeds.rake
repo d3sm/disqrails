@@ -189,7 +189,33 @@ namespace :feeds do
       { name: "Ladybird Browser", url: "https://ladybird.org/feed.xml", site_url: "https://ladybird.org/",
         category: "company_blog", tags: %w[web browsers open-source], featured: false },
       { name: "htmx", url: "https://htmx.org/feed.xml", site_url: "https://htmx.org/", category: "language_framework",
-        tags: %w[frontend web], featured: false }
+        tags: %w[frontend web], featured: false },
+
+      # === Curated newsletters / communities ===
+      { name: "The Pragmatic Engineer", url: "https://newsletter.pragmaticengineer.com/feed",
+        site_url: "https://newsletter.pragmaticengineer.com/", category: "news",
+        tags: %w[engineering management startups ai], featured: true },
+      { name: "Pointer", url: "https://www.pointer.io/rss/", site_url: "https://www.pointer.io/",
+        category: "news", tags: %w[engineering management architecture], featured: true },
+      { name: "Lobsters", url: "https://lobste.rs/rss", site_url: "https://lobste.rs/",
+        category: "news", tags: %w[community programming open-source], featured: true },
+
+      # === Reddit tech streams (RSS) ===
+      { name: "/r/programming", url: "https://www.reddit.com/r/programming/.rss",
+        site_url: "https://www.reddit.com/r/programming/", category: "news",
+        tags: %w[reddit programming community], featured: false },
+      { name: "/r/technology", url: "https://www.reddit.com/r/technology/.rss",
+        site_url: "https://www.reddit.com/r/technology/", category: "news",
+        tags: %w[reddit technology], featured: false },
+      { name: "/r/webdev", url: "https://www.reddit.com/r/webdev/.rss",
+        site_url: "https://www.reddit.com/r/webdev/", category: "language_framework",
+        tags: %w[reddit frontend web], featured: false },
+      { name: "/r/devops", url: "https://www.reddit.com/r/devops/.rss",
+        site_url: "https://www.reddit.com/r/devops/", category: "company_blog",
+        tags: %w[reddit devops infrastructure], featured: false },
+      { name: "/r/machinelearning", url: "https://www.reddit.com/r/MachineLearning/.rss",
+        site_url: "https://www.reddit.com/r/MachineLearning/", category: "news",
+        tags: %w[reddit ai machine-learning], featured: false }
     ]
 
     created = 0

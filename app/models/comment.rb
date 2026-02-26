@@ -8,6 +8,8 @@ class Comment < ApplicationRecord
   validates :external_id, presence: true, unless: :local_only?
   validates :external_id, uniqueness: true, allow_nil: true
 
+  SORT_MODES = %w[threaded newest oldest].freeze
+
   scope :threaded_order, -> { order(:position, :id) }
 
   def display_author

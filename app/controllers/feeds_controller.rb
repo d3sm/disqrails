@@ -4,7 +4,7 @@ class FeedsController < ApplicationController
 
     if params[:tag].present?
       @current_tag = Tag.find_by(slug: params[:tag])
-      feeds = feeds.joins(:tags).where(tags: { slug: params[:tag] }) if @current_tag
+      feeds = feeds.joins(:tags).where(tags: { slug: params[:tag] }).distinct if @current_tag
     end
 
     @feeds_by_category = feeds.group_by(&:category)

@@ -1,4 +1,16 @@
-ActiveRecord::Schema[8.1].define(version: 20_260_224_121_101) do
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[8.1].define(version: 2026_02_24_121101) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -10,7 +22,7 @@ ActiveRecord::Schema[8.1].define(version: 20_260_224_121_101) do
     t.uuid "user_id", null: false
     t.integer "value", limit: 2, null: false
     t.index ["comment_id"], name: "index_comment_reactions_on_comment_id"
-    t.index %w[user_id comment_id], name: "index_comment_reactions_on_user_id_and_comment_id", unique: true
+    t.index ["user_id", "comment_id"], name: "index_comment_reactions_on_user_id_and_comment_id", unique: true
     t.check_constraint "value = ANY (ARRAY['-1'::integer, 1])", name: "check_comment_reactions_value"
   end
 
@@ -32,8 +44,8 @@ ActiveRecord::Schema[8.1].define(version: 20_260_224_121_101) do
     t.uuid "user_id"
     t.index ["external_id"], name: "index_comments_on_external_id", unique: true
     t.index ["parent_id"], name: "index_comments_on_parent_id"
-    t.index %w[post_id parent_external_id], name: "index_comments_on_post_id_and_parent_external_id"
-    t.index %w[post_id position], name: "index_comments_on_post_id_and_position"
+    t.index ["post_id", "parent_external_id"], name: "index_comments_on_post_id_and_parent_external_id"
+    t.index ["post_id", "position"], name: "index_comments_on_post_id_and_position"
     t.index ["post_id"], name: "index_comments_on_post_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
@@ -41,7 +53,7 @@ ActiveRecord::Schema[8.1].define(version: 20_260_224_121_101) do
   create_table "feed_tags", force: :cascade do |t|
     t.bigint "feed_id", null: false
     t.bigint "tag_id", null: false
-    t.index %w[feed_id tag_id], name: "index_feed_tags_on_feed_id_and_tag_id", unique: true
+    t.index ["feed_id", "tag_id"], name: "index_feed_tags_on_feed_id_and_tag_id", unique: true
     t.index ["feed_id"], name: "index_feed_tags_on_feed_id"
     t.index ["tag_id"], name: "index_feed_tags_on_tag_id"
   end
@@ -62,7 +74,7 @@ ActiveRecord::Schema[8.1].define(version: 20_260_224_121_101) do
     t.string "source_type", default: "rss", null: false
     t.datetime "updated_at", null: false
     t.string "url", null: false
-    t.index %w[active last_fetched_at], name: "index_feeds_on_active_and_last_fetched_at"
+    t.index ["active", "last_fetched_at"], name: "index_feeds_on_active_and_last_fetched_at"
     t.index ["url"], name: "index_feeds_on_url", unique: true
   end
 
@@ -75,7 +87,7 @@ ActiveRecord::Schema[8.1].define(version: 20_260_224_121_101) do
     t.string "provider_uid", null: false
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
-    t.index %w[provider provider_uid], name: "index_identities_on_provider_and_provider_uid", unique: true
+    t.index ["provider", "provider_uid"], name: "index_identities_on_provider_and_provider_uid", unique: true
     t.index ["user_id"], name: "index_identities_on_user_id"
   end
 
@@ -89,9 +101,8 @@ ActiveRecord::Schema[8.1].define(version: 20_260_224_121_101) do
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
     t.index ["status"], name: "index_nickname_change_requests_on_status"
-    t.index %w[user_id status], name: "index_nickname_change_requests_on_user_id_and_status"
-    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'approved'::character varying::text, 'rejected'::character varying::text])",
-                       name: "check_ncr_status"
+    t.index ["user_id", "status"], name: "index_nickname_change_requests_on_user_id_and_status"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'approved'::character varying::text, 'rejected'::character varying::text])", name: "check_ncr_status"
   end
 
   create_table "post_reactions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -101,7 +112,7 @@ ActiveRecord::Schema[8.1].define(version: 20_260_224_121_101) do
     t.uuid "user_id", null: false
     t.integer "value", limit: 2, null: false
     t.index ["post_id"], name: "index_post_reactions_on_post_id"
-    t.index %w[user_id post_id], name: "index_post_reactions_on_user_id_and_post_id", unique: true
+    t.index ["user_id", "post_id"], name: "index_post_reactions_on_user_id_and_post_id", unique: true
     t.check_constraint "value = ANY (ARRAY['-1'::integer, 1])", name: "check_post_reactions_value"
   end
 
@@ -140,7 +151,7 @@ ActiveRecord::Schema[8.1].define(version: 20_260_224_121_101) do
     t.datetime "updated_at", null: false
     t.uuid "user_id"
     t.index ["feed_id"], name: "index_subscriptions_on_feed_id"
-    t.index %w[user_id feed_id], name: "index_subscriptions_on_user_id_and_feed_id", unique: true
+    t.index ["user_id", "feed_id"], name: "index_subscriptions_on_user_id_and_feed_id", unique: true
     t.index ["user_id"], name: "index_subscriptions_on_user_id"
   end
 
@@ -162,8 +173,7 @@ ActiveRecord::Schema[8.1].define(version: 20_260_224_121_101) do
     t.datetime "updated_at", null: false
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["nickname"], name: "index_users_on_nickname", unique: true, where: "(deleted_at IS NULL)"
-    t.check_constraint "role::text = ANY (ARRAY['user'::character varying::text, 'overseer'::character varying::text])",
-                       name: "check_users_role"
+    t.check_constraint "role::text = ANY (ARRAY['user'::character varying::text, 'overseer'::character varying::text])", name: "check_users_role"
   end
 
   add_foreign_key "comment_reactions", "comments"

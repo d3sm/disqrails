@@ -1,0 +1,8 @@
+<% if post.external_source? %>
+  <span class="inline-block ml-1.5 rounded-pill px-2 py-px text-xs text-badge-ext-text bg-badge-ext-bg align-[0.2rem]"><%= post.external_source_label %><%= " #{post.hn_score}pts" if post.hn_score.to_i > 0 %></span>
+<% elsif post.source == "feed" && post.feed.present? %>
+  <span class="inline-block ml-1.5 rounded-pill px-2 py-px text-xs text-muted bg-surface-2 align-[0.2rem]"><%= post.feed.name.truncate(24) %></span>
+  <% post.feed.tags.each do |tag| %>
+    <%= link_to tag.name, posts_path(tag: tag.slug), class: "inline-block ml-0.5 rounded-pill px-1.5 py-px text-xs bg-surface-2 text-muted no-underline hover:text-accent align-[0.2rem]" %>
+  <% end %>
+<% end %>

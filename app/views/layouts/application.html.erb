@@ -19,11 +19,23 @@
   </head>
   <body class="font-serif bg-bg text-primary leading-relaxed min-h-full">
     <div class="bg-grain"></div>
-    <main class="relative max-w-[860px] mx-auto px-4 pt-5 pb-16 max-sm:pt-3">
-      <%= render "layouts/topbar" %>
-      <%= render "layouts/theme_lab" %>
-      <%= render "layouts/snacks" %>
-      <%= yield %>
-    </main>
+    <%= render "layouts/topbar" %>
+    <%= render "layouts/theme_lab" %>
+    <%= render "layouts/snacks" %>
+
+    <% if content_for?(:sidebar) %>
+      <div class="relative mx-auto max-w-[860px] px-4 pt-5 pb-16 max-sm:pt-3">
+        <aside class="absolute top-5 right-full mr-6 hidden w-64 sm:block">
+          <%= yield :sidebar %>
+        </aside>
+        <main>
+          <%= yield %>
+        </main>
+      </div>
+    <% else %>
+      <main class="relative max-w-[860px] mx-auto px-4 pt-5 pb-16 max-sm:pt-3">
+        <%= yield %>
+      </main>
+    <% end %>
   </body>
 </html>

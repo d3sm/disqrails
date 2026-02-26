@@ -1,3 +1,28 @@
+<% content_for :sidebar do %>
+  <% if @tags.any? %>
+    <section id="tags-sidebar" data-collapsed="false" class="sticky top-20 w-full rounded-card border border-line bg-surface p-3 shadow-card">
+      <div class="mb-2 flex items-center justify-between gap-2">
+        <h2 class="m-0 text-sm font-semibold text-primary">Tags</h2>
+        <button
+          type="button"
+          data-sidebar-toggle
+          class="rounded-btn border border-line px-2 py-1 text-xs text-muted hover:text-accent cursor-pointer"
+        >
+          <span data-sidebar-label-expanded>Collapse</span>
+          <span data-sidebar-label-collapsed>Expand</span>
+        </button>
+      </div>
+      <div data-sidebar-content class="flex flex-wrap items-start gap-1.5 text-sm">
+        <% @tags.each do |tag| %>
+          <% active = @current_tag&.id == tag.id %>
+          <%= link_to tag.name, posts_path(source: @source_filter, tag: tag.slug, sort: @sort),
+            class: "inline-flex w-auto self-start rounded-pill px-2 py-1 text-xs no-underline whitespace-nowrap #{active ? 'bg-accent text-white' : 'bg-surface-2 text-muted hover:text-accent'}" %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+<% end %>
+
 <section class="mt-6 mb-4">
   <h1 class="m-0 text-2xl sm:text-3xl leading-tight"><%= link_to "disqrails", root_path, class: "text-primary no-underline hover:underline" %></h1>
 
@@ -20,22 +45,24 @@
     </div>
   </details>
 
+  <% general_source = (@sort == "hot_external" ? nil : @source_filter) %>
+  <% general_tag = (@sort == "hot_external" ? nil : @tag_filter) %>
   <nav class="mb-4 flex gap-3 text-base">
     <%= link_to "All", posts_path, class: "no-underline #{@source_filter.blank? && @tag_filter.blank? ? 'text-primary font-bold' : 'text-muted hover:text-accent'}" %>
     <%= link_to "Blogs", posts_path(source: "feed"), class: "no-underline #{@source_filter == 'feed' ? 'text-primary font-bold' : 'text-muted hover:text-accent'}" %>
     <%= link_to "Discussions", posts_path(source: "external"), class: "no-underline #{@source_filter == 'external' ? 'text-primary font-bold' : 'text-muted hover:text-accent'}" %>
-    <%= link_to "Feeds", feeds_path, class: "no-underline text-muted hover:text-accent" %>
-
     <span class="ml-auto flex gap-2">
-      <% { "new" => "New", "top" => "Top", "source_rank" => "Rank" }.each do |mode, label| %>
-        <%= link_to label, posts_path(source: @source_filter, tag: @tag_filter, sort: mode),
-          class: "no-underline text-sm #{@sort == mode ? 'text-primary font-bold' : 'text-muted hover:text-accent'}" %>
-      <% end %>
+      <%= link_to "New", posts_path(source: general_source, tag: general_tag, sort: "new"),
+        class: "no-underline text-sm #{@sort == 'new' ? 'text-primary font-bold' : 'text-muted hover:text-accent'}" %>
+      <%= link_to "Hot", posts_path(source: general_source, tag: general_tag, sort: "hot"),
+        class: "no-underline text-sm #{@sort == 'hot' ? 'text-primary font-bold' : 'text-muted hover:text-accent'}" %>
+      <%= link_to "Hot (external)", posts_path(sort: "hot_external"),
+        class: "no-underline text-sm #{@sort == 'hot_external' ? 'text-primary font-bold' : 'text-muted hover:text-accent'}" %>
     </span>
   </nav>
 
   <% if @tags.any? %>
-    <div class="mt-1.5 flex flex-wrap gap-1">
+    <div class="mt-1.5 flex flex-wrap gap-1 sm:hidden">
       <% @tags.each do |tag| %>
         <% active = @current_tag&.id == tag.id %>
         <%= link_to tag.name, posts_path(source: @source_filter, tag: tag.slug, sort: @sort),

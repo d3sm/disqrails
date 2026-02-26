@@ -56,8 +56,9 @@ class PruneStaleDataJob < ApplicationJob
       cutoff_id = Post.where(source: source).order(created_at: :desc).offset(cap).limit(1).pick(:id)
       next unless cutoff_id
 
-      deleted = Post.where(source: source).where(id: ..cutoff_id).delete_all
-      Rails.logger.info("PruneStaleDataJob: capped #{source} — deleted #{deleted} posts (was #{count}, cap #{cap})")
+      stale = Post.where(source: source).where(id: ..cutoff_id)
+      purge_posts!(stale)
+      Rails.logger.info("PruneStaleDataJob: capped #{source} (was #{count}, cap #{cap})")
     end
   end
 
@@ -69,8 +70,19 @@ class PruneStaleDataJob < ApplicationJob
       cutoff_id = feed.posts.order(created_at: :desc).offset(PER_FEED_CAP).limit(1).pick(:id)
       next unless cutoff_id
 
-      deleted = feed.posts.where(id: ..cutoff_id).delete_all
-      Rails.logger.info("PruneStaleDataJob: capped feed #{feed.name} — deleted #{deleted} posts")
+      stale = feed.posts.where(id: ..cutoff_id)
+      purge_posts!(stale)
+      Rails.logger.info("PruneStaleDataJob: capped feed #{feed.name}")
     end
+  end
+
+  def purge_posts!(scope)
+    ids = scope.pluck(:id)
+    return if ids.empty?
+
+    CommentReaction.where(comment_id: Comment.where(post_id: ids).select(:id)).delete_all
+    Comment.where(post_id: ids).delete_all
+    PostReaction.where(post_id: ids).delete_all
+    Post.where(id: ids).delete_all
   end
 end

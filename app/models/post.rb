@@ -13,20 +13,33 @@ class Post < ApplicationRecord
   validates :title, presence: true
   validate :url_or_text_present
 
-  SORT_MODES = %w[new top source_rank].freeze
+  SORT_MODES = %w[new hot hot_external].freeze
 
   scope :sort_by_new, -> { order(Arel.sql("COALESCE(posts.published_at, posts.created_at) DESC")) }
-  scope :sort_by_top, -> { order(Arel.sql("COALESCE(posts.hn_score, 0) DESC, COALESCE(posts.published_at, posts.created_at) DESC")) }
-  scope :sort_by_source_rank, lambda {
-    order(Arel.sql("COALESCE(posts.hn_rank, 999999) ASC, COALESCE(posts.published_at, posts.created_at) DESC"))
+  scope :hot_scope, lambda {
+    order(
+      Arel.sql(
+        "#{reaction_sum_sql} DESC, " \
+        "#{source_bucket_sql(external_first: false)} ASC, " \
+        "COALESCE(posts.published_at, posts.created_at) DESC"
+      )
+    )
   }
-  scope :frontpage_order, -> { sort_by_new }
+  scope :hot_external_scope, lambda {
+    order(
+      Arel.sql(
+        "#{source_bucket_sql(external_first: true)} ASC, " \
+        "COALESCE(posts.hn_score, 0) DESC, " \
+        "COALESCE(posts.published_at, posts.created_at) DESC"
+      )
+    )
+  }
   scope :from_external, -> { where(source: EXTERNAL_SOURCES.keys) }
 
   def self.apply_sort(scope, mode)
     case mode
-    when "top" then scope.sort_by_top
-    when "source_rank" then scope.sort_by_source_rank
+    when "hot" then scope.hot_scope
+    when "hot_external" then scope.hot_external_scope
     else scope.sort_by_new
     end
   end
@@ -127,5 +140,19 @@ class Post < ApplicationRecord
     return if text.blank?
 
     text.gsub(/<[^>]*>/, " ").squish.truncate(280)
+  end
+
+  def self.source_bucket_sql(external_first:)
+    external_sources = EXTERNAL_SOURCES.keys.map { |source| "'#{source.to_s.gsub("'", "''")}'" }.join(", ")
+
+    if external_first
+      "CASE WHEN posts.source IN (#{external_sources}) THEN 0 ELSE 1 END"
+    else
+      "CASE WHEN posts.source IN (#{external_sources}) THEN 1 ELSE 0 END"
+    end
+  end
+
+  def self.reaction_sum_sql
+    "COALESCE((SELECT SUM(post_reactions.value) FROM post_reactions WHERE post_reactions.post_id = posts.id), 0)"
   end
 end

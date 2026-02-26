@@ -1,14 +1,7 @@
 <section class="mt-6 mb-4">
   <h1 class="m-0 text-2xl sm:text-3xl leading-tight">
     <%= post.title %>
-    <% if post.external_source? %>
-      <span class="inline-block ml-1.5 rounded-pill px-2 py-px text-xs text-badge-ext-text bg-badge-ext-bg align-[0.2rem]"><%= post.external_source_label %><%= " #{post.hn_score}pts" if post.hn_score.to_i > 0 %></span>
-    <% elsif post.source == "feed" && post.feed.present? %>
-      <span class="inline-block ml-1.5 rounded-pill px-2 py-px text-xs text-muted bg-surface-2 align-[0.2rem]"><%= post.feed.name.truncate(24) %></span>
-      <% post.feed.tags.each do |tag| %>
-        <%= link_to tag.name, posts_path(tag: tag.slug), class: "inline-block ml-0.5 rounded-pill px-1.5 py-px text-xs bg-surface-2 text-muted no-underline hover:text-accent align-[0.2rem]" %>
-      <% end %>
-    <% end %>
+    <%= render "posts/source_badges", post: post %>
   </h1>
   <div class="mt-1">
     <%= render VotingControlsComponent.new(path: post_reaction_path(post), score: post.reaction_score.to_i, user_reaction: local_assigns[:post_reaction], signed_in: !!current_user) %>
@@ -21,6 +14,6 @@
     <% if post.url.present? %>
       <span><%= link_to post.source_domain, post.url, class: "text-muted hover:text-accent no-underline", target: "_blank" %></span>
     <% end %>
-    <span>posted <%= time_ago_in_words(post.effective_time) %> ago</span>
+    <span>published <%= post.effective_time.utc.strftime("%Y-%m-%d %H:%M UTC") %></span>
   </div>
 </section>

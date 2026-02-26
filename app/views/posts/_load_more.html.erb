@@ -1,13 +1,23 @@
-<%= turbo_frame_tag "load_more_posts", style: "display: contents" do %>
-  <% @posts.each do |post| %>
-    <%= render "posts/post_item", post: post %>
-  <% end if @page && @page > 1 %>
+<% prev_page = @page && @page > 1 ? @page - 1 : nil %>
+<% frame_id = prev_page ? "load_more_posts_#{prev_page}" : nil %>
+
+<% wrapper = -> (&block) { frame_id ? turbo_frame_tag(frame_id, style: "display: contents", &block) : capture(&block) } %>
+<%= wrapper.call do %>
+  <% if prev_page %>
+    <% @posts.each do |post| %>
+      <%= render "posts/post_item", post: post %>
+    <% end %>
+  <% end %>
+
   <% if @next_page %>
-    <li class="list-none flex justify-center pt-2 pb-1">
-      <%= link_to "Load more",
-        posts_path(source: @source_filter, tag: @tag_filter, sort: @sort, page: @next_page),
-        data: { turbo_frame: "load_more_posts" },
-        class: "bg-surface text-muted rounded-pill px-3 py-1.5 text-sm no-underline hover:text-primary" %>
-    </li>
+    <% next_frame = "load_more_posts_#{@next_page - 1}" %>
+    <%= turbo_frame_tag next_frame, style: "display: contents" do %>
+      <li class="list-none flex justify-center pt-2 pb-1">
+        <%= link_to "Load more",
+          posts_path(source: @source_filter, tag: @tag_filter, sort: @sort, page: @next_page),
+          data: { turbo_frame: next_frame },
+          class: "bg-surface text-muted rounded-pill px-3 py-1.5 text-sm no-underline hover:text-primary" %>
+      </li>
+    <% end %>
   <% end %>
 <% end %>

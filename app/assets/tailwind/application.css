@@ -79,6 +79,19 @@
   pointer-events: auto;
 }
 
+/* Tags sidebar collapse state */
+#tags-sidebar[data-collapsed="true"] [data-sidebar-content] {
+  display: none;
+}
+
+#tags-sidebar[data-collapsed="true"] [data-sidebar-label-expanded] {
+  display: none;
+}
+
+#tags-sidebar:not([data-collapsed="true"]) [data-sidebar-label-collapsed] {
+  display: none;
+}
+
 /* Comment depth indentation via inline --depth var */
 .comment-indent {
   margin-left: calc(var(--depth) * 0.75rem);
@@ -116,9 +129,9 @@
 
 /* Card component */
 @utility card {
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   background: var(--surface);
-  box-shadow: 0 10px 30px rgba(47, 39, 26, 0.08);
+  box-shadow: var(--shadow-card);
 }
 
 /* Meta separator dots */

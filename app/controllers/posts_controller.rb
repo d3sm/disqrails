@@ -22,15 +22,14 @@ class PostsController < ApplicationController
     @tags = Tag.joins(:feeds).distinct.order("tags.name")
 
     @page = [params.fetch(:page, 1).to_i, 1].max
-    @posts = scope.includes(:feed, :user).offset((@page - 1) * PER_PAGE).limit(PER_PAGE)
-    @next_page = scope.offset(@page * PER_PAGE).exists? ? @page + 1 : nil
+    paged_posts = scope.includes(:feed, :user).offset((@page - 1) * PER_PAGE).limit(PER_PAGE + 1).to_a
+    @next_page = paged_posts.length > PER_PAGE ? @page + 1 : nil
+    @posts = paged_posts.first(PER_PAGE)
   end
-
-  COMMENT_SORT_MODES = %w[threaded newest oldest].freeze
 
   def show
     @post = Post.find_by_param!(params[:id])
-    @comment_sort = COMMENT_SORT_MODES.include?(params[:comment_sort]) ? params[:comment_sort] : "threaded"
+    @comment_sort = Comment::SORT_MODES.include?(params[:comment_sort]) ? params[:comment_sort] : "threaded"
     all_comments = @post.comments.includes(:comment_reactions, :user).then { |scope| apply_comment_sort(scope) }
     @local_comments = all_comments.select { |c| c.local_reply? || c.external_id.blank? }
     @external_comments = all_comments.select { |c| c.external_id.present? && !c.local_reply? }

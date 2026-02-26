@@ -5,3 +5,4 @@ pin "theme_lab"
 
 pin "user_menu"
 pin "quote_clipboard"
+pin "sidebar_toggle"
