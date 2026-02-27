@@ -59,6 +59,8 @@ class FeedFetcher
     post.save!
     FetchArticleMetadataJob.perform_later(post.id) if post.source_image_url.blank? || post.source_description.blank?
     post
+  rescue ActiveRecord::RecordNotUnique
+    nil
   end
 
   def fetch_xml(feed, redirects: MAX_REDIRECTS)

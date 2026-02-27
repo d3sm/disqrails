@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_26_192643) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_27_084621) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -141,7 +141,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_26_192643) do
     t.index ["hn_rank"], name: "index_posts_on_hn_rank"
     t.index ["hn_type"], name: "index_posts_on_hn_type"
     t.index ["published_at"], name: "index_posts_on_published_at"
-    t.index ["url"], name: "index_posts_on_url"
+    t.index ["url"], name: "index_posts_on_url", unique: true, where: "(url IS NOT NULL)"
     t.index ["user_id"], name: "index_posts_on_user_id"
   end
 

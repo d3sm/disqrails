@@ -1,6 +1,7 @@
 class PostsController < ApplicationController
   PER_PAGE = 20
   STALE_THRESHOLD = 1.hour
+  REFRESH_MUTEX = Mutex.new
 
   before_action :refresh_if_stale, only: :index
 
@@ -81,12 +82,15 @@ class PostsController < ApplicationController
   def refresh_if_stale
     last = Feed.maximum(:last_fetched_at)
     return if last && last > STALE_THRESHOLD.ago
+    return unless REFRESH_MUTEX.try_lock
 
     Thread.new do
       Feed.due.find_each { |feed| FeedFetcher.new.fetch(feed) }
       HackerNewsImporter.new.import_top_stories(limit: 30)
     rescue => e
       Rails.logger.warn("Auto-refresh failed: #{e.message}")
+    ensure
+      REFRESH_MUTEX.unlock
     end
   end
 
