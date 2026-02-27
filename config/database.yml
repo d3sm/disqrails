@@ -19,6 +19,3 @@ production:
   primary: &primary_production
     <<: *default
     url: <%= ENV["DATABASE_URL"] %>
-  queue:
-    <<: *primary_production
-    schema_dump: db/queue_schema.rb

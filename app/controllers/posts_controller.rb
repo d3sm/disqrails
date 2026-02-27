@@ -1,5 +1,8 @@
 class PostsController < ApplicationController
   PER_PAGE = 20
+  STALE_THRESHOLD = 1.hour
+
+  before_action :refresh_if_stale, only: :index
 
   def index
     @source_filter = params[:source]
@@ -73,6 +76,18 @@ class PostsController < ApplicationController
 
   def all_scope
     Post.all
+  end
+
+  def refresh_if_stale
+    last = Feed.maximum(:last_fetched_at)
+    return if last && last > STALE_THRESHOLD.ago
+
+    Thread.new do
+      Feed.due.find_each { |feed| FeedFetcher.new.fetch(feed) }
+      HackerNewsImporter.new.import_top_stories(limit: 30)
+    rescue => e
+      Rails.logger.warn("Auto-refresh failed: #{e.message}")
+    end
   end
 
   def apply_tag_filter(scope)
