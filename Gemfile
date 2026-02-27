@@ -14,9 +14,6 @@ gem "omniauth-github"
 gem "omniauth-rails_csrf_protection"
 gem "tailwindcss-rails", "~> 4.0"
 gem "tzinfo-data", platforms: [:windows, :jruby]
-gem "solid_cable"
-gem "solid_cache"
-gem "solid_queue"
 gem "view_component"
 gem "bootsnap", require: false
 

@@ -23,7 +23,5 @@ services:
         sync: false
       - key: SECRET_KEY_BASE
         generateValue: true
-      - key: SOLID_QUEUE_IN_PUMA
-        value: "1"
       - key: RAILS_ENV
         value: production
